@@ -58,13 +58,23 @@ def test_parse_order_local_9_digit_phone() -> None:
     ("raw", "expected"),
     [
         ("+995599228754", "995599228754"),
+        ("+995 599 228 754", "995599228754"),
         ("591348802", "995591348802"),
+        ("00995599123456", "995599123456"),
+        ("0591348802", "995591348802"),
+        ("+79161234567", None),
+        ("+12025550123", None),
+        ("99559922875", None),  # 11 digits
+        ("9955992287540", None),  # 13 digits
+        ("322123456", None),  # landline-style, not mobile
+        ("995", None),
         ("12345", None),
         ("", None),
     ],
 )
 def test_normalize_phone(raw: str, expected: str | None) -> None:
     assert normalize_phone(raw) == expected
+
 
 
 def test_parse_missing_phone() -> None:

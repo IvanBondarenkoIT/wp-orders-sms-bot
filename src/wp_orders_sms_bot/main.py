@@ -7,14 +7,27 @@ import sys
 
 from telegram.ext import Application, MessageHandler, filters
 
-from .config import get_settings
+from .config import Settings, get_settings
 from .handlers import build_bot_data, handle_order_message
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
     level=logging.INFO,
 )
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
+
+
+async def _announce_online(application: Application) -> None:
+    settings: Settings = application.bot_data["settings"]
+    mode = "dry_run" if settings.dry_run else "live"
+    text = f"DK Order SMS online ({mode})"
+    for chat_id in settings.allowed_chat_ids:
+        try:
+            await application.bot.send_message(chat_id=chat_id, text=text)
+        except Exception:
+            logger.exception("startup greeting failed for chat_id=%s", chat_id)
 
 
 def main() -> None:
@@ -28,6 +41,7 @@ def main() -> None:
     app = (
         Application.builder()
         .token(settings.telegram_bot_token)
+        .post_init(_announce_online)
         .build()
     )
     app.bot_data.update(build_bot_data(settings))
