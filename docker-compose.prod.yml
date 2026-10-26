@@ -1,0 +1,19 @@
+services:
+  bot:
+    build: .
+    container_name: wp-orders-sms-bot
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      TZ: Asia/Tbilisi
+      SMS_API_URL: ${SMS_API_URL:-http://sms-api-sender:8000}
+      DATA_DIR: /app/data
+    volumes:
+      - ./data:/app/data
+    networks:
+      - edge
+
+networks:
+  edge:
+    external: true
+    name: edge
